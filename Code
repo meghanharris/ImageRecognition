@@ -1,0 +1,108 @@
+####Image Recognition ####
+#1 loading in the dataset
+import ssl
+ssl._create_default_https_context=ssl._create_unverified_context
+from keras.datasets import cifar10
+from matplotlib import pyplot
+(x_train1,y_train1), (x_test1,y_test1)= cifar10.load_data()
+labels = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
+print(("X train: ")+ str(x_train1.shape))
+print(("X test: ")+ str(x_test1.shape))
+print(("Y train: ")+ str(y_train1.shape))
+print(("Y test: ")+ str(y_test1.shape))
+
+#plotting
+for i in range(20):
+    pyplot.subplot(5,4,i+1)
+    pyplot.imshow(x_test1[i])
+pyplot.show()
+for i in y_test1[:20]:
+    if i == 0:
+        print(i,"airplane")
+    elif i == 1:
+        print(i,"automobile")
+    elif i == 2:
+        print(i,"bird")
+    elif i == 3:
+        print(i,"cat")
+    elif i == 4:
+        print(i,"deer")
+    elif i == 5:
+        print(i,"dog")
+    elif i == 6:
+        print(i,"frog")
+    elif i == 7:
+        print(i,"horse")
+    elif i == 8:
+        print(i,"ship")
+    elif i == 9:
+        print(i,"truck")
+       
+#2 Training a CNN model
+
+import tensorflow as tf
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten, InputLayer
+from keras.layers import Conv2D, MaxPooling2D
+from keras.losses import categorical_crossentropy
+import keras.optimizers
+from keras.utils import np_utils
+
+#change to 4d
+x_train1= x_train1.reshape(50000,32,32,3)
+x_test1= x_test1.reshape(10000,32,32,3)
+y_train1= keras.utils.np_utils.to_categorical(y_train1,10)
+y_test1=keras.utils.np_utils.to_categorical(y_test1,10)
+x_train1= x_train1 / 255.0
+x_test1 = x_test1/ 255.0
+x_train1=x_train1.astype("float")
+x_test1=x_test1.astype("float")
+y_train1=y_train1.astype("float")
+y_test1=y_test1.astype("float")
+
+
+from sklearn.preprocessing import LabelBinarizer
+labelbin= LabelBinarizer()
+y_test11= labelbin.fit_transform(y_test1)
+y_train11= labelbin.fit_transform(y_train1)
+
+CNNmodel= Sequential()
+CNNmodel.add(Conv2D(32,kernel_size=(3,3),activation="relu"))
+CNNmodel.add(Dropout(0.2))
+CNNmodel.add(Conv2D(32,kernel_size=(3,3),activation="relu"))
+CNNmodel.add(MaxPooling2D(pool_size=(2,2)))
+CNNmodel.add(Conv2D(64,kernel_size=(3,3),activation="relu"))
+CNNmodel.add(Dropout(0.2))
+CNNmodel.add(Conv2D(64,kernel_size=(3,3),activation="relu"))
+CNNmodel.add(MaxPooling2D(pool_size=(2,2)))
+CNNmodel.add(Flatten())
+CNNmodel.add(Dense(256,activation="relu"))
+CNNmodel.add(Dropout(0.2))
+CNNmodel.add(Dense(10,activation="softmax"))
+CNNmodel.compile(loss="categorical_crossentropy",optimizer="adadelta",metrics=["accuracy"])
+CNNmodel.fit(x_train1,y_train11,batch_size=250,epochs=5)
+performance= CNNmodel.evaluate(x_test1,y_test11)
+print("Test accuracy:",performance[1])
+
+#3 Training another CNN model with different layers
+
+CNNmodel1= Sequential()
+CNNmodel1.add(Conv2D(32,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(Dropout(0.2))
+CNNmodel1.add(Conv2D(32,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(MaxPooling2D(pool_size=(2,2)))
+CNNmodel1.add(Conv2D(64,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(Dropout(0.2))
+CNNmodel1.add(Conv2D(64,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(MaxPooling2D(pool_size=(2,2)))
+CNNmodel1.add(Conv2D(128,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(Dropout(0.2))
+CNNmodel1.add(Conv2D(128,kernel_size=(3,3),activation="relu"))
+CNNmodel1.add(Flatten())
+CNNmodel1.add(Dense(256,activation="relu"))
+CNNmodel1.add(Dropout(0.2))
+CNNmodel1.add(Dense(10,activation="softmax"))
+CNNmodel1.compile(loss="categorical_crossentropy",optimizer="adadelta",metrics=["accuracy"])
+CNNmodel1.fit(x_train1,y_train1,batch_size=350,epochs=5)
+performance= CNNmodel1.evaluate(x_test1,y_test1)
+print("Test accuracy:",performance[1])
